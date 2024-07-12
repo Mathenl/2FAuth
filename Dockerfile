@@ -5,16 +5,11 @@ ARG PHP_VERSION=8.2-alpine${ALPINE_VERSION}
 ARG COMPOSER_VERSION=2.7
 ARG SUPERVISORD_VERSION=v0.7.3
 
-ARG UID=1000
-ARG GID=1000
-
 FROM --platform=${BUILDPLATFORM} composer:${COMPOSER_VERSION} AS build-composer
 FROM composer:${COMPOSER_VERSION} AS composer
 FROM qmcgaw/binpot:supervisord-${SUPERVISORD_VERSION} AS supervisord
 
 FROM --platform=${BUILDPLATFORM} php:${PHP_VERSION} AS vendor
-ARG UID=1000
-ARG GID=1000
 COPY --from=build-composer --chown=${UID}:${GID} /usr/bin/composer /usr/bin/composer
 RUN apk add --no-cache unzip
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
@@ -35,8 +30,6 @@ COPY docker/php-test.ini /usr/local/etc/php/php.ini
 ENTRYPOINT [ "/srv/vendor/bin/phpunit" ]
 
 FROM alpine:${ALPINE_VERSION}
-ARG UID=1000
-ARG GID=1000
 
 # Composer 2
 COPY --from=composer --chown=${UID}:${GID} /usr/bin/composer /usr/bin/composer
